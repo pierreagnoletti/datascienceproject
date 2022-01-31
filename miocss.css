@@ -1,0 +1,102 @@
+/* block quotes */
+blockquote {
+    /*background: #0a6885;*/
+    border-left: 5px solid #ccc;
+    margin: 1.5em 10px;
+    padding: 0.5em 1.5em;
+  }
+  
+  /* scrolling */
+  slides > slide {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    
+  }
+  
+  slides > slide {
+   /* background: linear-gradient(#41a5c4, #41a5c4 85%, #41a5c4);*/
+    background: rgb(241, 200, 163);
+    color:beige;
+    }
+
+    /*#77bfd4;*/
+
+  p{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: black;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    font-size: 25px;
+    
+  }
+
+  .title-slide hgroup h1 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: black;
+    margin-top: 200px;
+}
+
+  .title-slide hgroup p {
+    color: black;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .title-slide hgroup{
+    position:sticky;
+    text-align: center;
+    color: black;
+  }
+
+   pre{
+    color: black;
+  }
+
+  .build{
+    color: black;
+  }
+
+  .header{
+    background: #ecab72;
+  }
+
+  .prettyprint {
+    background-color: rgb(236, 171, 114); 
+    text-shadow: 0 0 black;
+    position: initial;
+}
+
+  h2{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: black;
+    text-align: center;
+  }
+
+
+  .ace_text-input{
+    background: white;
+  }
+
+  .table.rmdtable.th{
+    background: white;
+  }
+  
+  tr.odd{
+    background-color: white;
+    color: black;
+  }
+
+  tr.even{
+    border-top: black;
+    background-color: white;
+    color: black;
+  }
+  
+  /* hide page numbers */
+  slides > slide:not(.nobackground):after {
+    content: '';
+  }
+  

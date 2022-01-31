@@ -1,0 +1,820 @@
+---
+title: "Bike Sharing Project"
+author: "Pierre Agnoletti"
+output:
+  ioslides_presentation: 
+    css: miocss.css
+    incremental: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+
+```{r setup, include=FALSE}
+```
+
+
+ 
+## Bike Sharing, una breve introduzione. 
+            
+ ![Alt text](/Users/pierr/Documents/Fondamenti di scienza dei dati/PROGETTO/foto/foto1.jpg){width=700px, position=right}  
+ <br />
+
+Per chi non avesse dimestichezza con i servizi di bike sharing eccone una facile spiegazione. 
+Facciamo finta di trovarci in una città molto grande come, ad esempio una capitale, e vogliamo muoverci 
+in questa velocemente e senza dover usare i servizi pubblici o l'auto. 
+Che tu viva in questa città o sia un turista, un'ottima soluzione sarebbe quella di 
+muoversi in bicicletta, poiché l'utilizzo di questa è 100% senza emissioni di CO2 e
+ti consente di eseguire dell'attività fisica, quindi è anche salutare per il tuo corpo. 
+Ma cosa succede se non sei in possesso di una bicicletta o sei un turista? 
+E' in questo caso che il bike sharing viene davvero in aiuto, perché è un servizio che ti permette di noleggiare una
+bici per il tempo di cui hai bisogno, per raggiungere la destinazione che hai prefissato. Il tutto ad un costo particolarmente vantaggioso e, in molti casi, in un tempo minore di quello impiegato da
+altri servizi come taxi, metro, bus ... 
+
+
+## Bike Sharing, il dataset. 
+
+Per realizzare questo progetto ho utilizzato un dataset creato dal
+Laboratorio di Intelligenza Artificiale e Supporto alle Decisioni
+(LIAAD) dell'Università di Porto. Le informazioni contenute in questo set di dati 
+sono un registro storico del numero di noleggi di bici
+(Capital Bikeshare) corrispondente agli anni 2011 e 2012 provenienti da Washington DC (USA). 
+Il dataset è diviso in due file diversi in quanto in uno sono contenuti i dati 
+prodotti giorno per giorno, mentre nell'altro possiamo andare ad analizzare
+ogni giorno, ora per ora.
+Inoltre, questo set di dati è stato aggregato con informazioni riguardanti le 
+condizioni ambientali e stagionali. Questo è stato fatto per poter sottolineare 
+quanto i processi di Bike-sharing siano altamente
+correlati alle impostazioni ambientali e stagionali.
+
+
+## Perché ho scelto questo dataset?
+
+Perché ho scelto questo dataset in particolare? Secondo il mio parere questo set di dati
+è molto interessante in quanto è possibile vedere una reale correlazione
+tra l'uso della bicicletta e le condizioni meteo e stagionali. 
+Inoltre, siccome questi dati sono reali, reputo che i risultati ottenuti siano molto interessanti e permettano di 
+comprendere alcuni dei fattori per cui le persone decidono di non usufruire di un servizio di bike sharing.
+Diamo  ora un'occhiata più da vicino a come è composto il set di dati.
+
+<br>
+ ![Alt text](/Users/pierr/Documents/Fondamenti di scienza dei dati/PROGETTO/foto/foto2.jpg){width=400px, position=center}  
+
+## Il dataset. #1
+Di seguito possiamo dare una prima occhiata alla composizione del dataset
+giornaliero.
+
+<br>
+
+```{r echo=FALSE, warning=FALSE}
+
+library(tidyr)
+library(kableExtra)
+
+tday<-"/Users/pierr/Documents/Fondamenti di scienza dei dati/PROGETTO/day.csv"
+day<-read.csv(tday)
+
+day$temp<-day$temp*41
+day$atemp<-day$atemp*50
+day$hum<-day$hum*100
+day$windspeed<-day$windspeed*67
+
+
+daysumm1<-head(day[1:9],2)
+
+
+daysumm1%>%
+  kbl() %>%
+  kable_paper("hover", full_width = F) %>%
+  row_spec(0, background = "#ecab72", color = "black" )
+
+
+```
+
+<br>
+
+```{r echo=FALSE, warning=FALSE}
+
+library(kableExtra)
+
+daysumm2<-head(day[10:16],2)
+
+daysumm2%>%
+  kbl() %>%
+  kable_paper("hover", full_width = F) %>%
+  row_spec(0, background = "#ecab72", color = "black" )
+```
+
+
+
+## Il dataset. #2
+Di seguito possiamo dare una prima occhiata, invece,  alla composizione del dataset
+in cui abbiamo un log di dati ora per ora.
+
+<br>
+
+```{r echo=FALSE, warning=FALSE}
+
+library(tidyr)
+
+
+thour<-"/Users/pierr/Documents/Fondamenti di scienza dei dati/PROGETTO/hour.csv"
+hour<-read.csv(thour)
+
+hour$temp<-hour$temp*41
+hour$atemp<-hour$atemp*50
+hour$hum<-hour$hum*100
+hour$windspeed<-hour$windspeed*67
+
+
+hoursumm1<-head(hour[1:9],2)
+
+
+hoursumm1%>%
+  kbl() %>%
+  kable_paper("hover", full_width = F) %>%
+  row_spec(0, background = "#ecab72", color = "black" )
+
+```
+
+<br>
+
+```{r echo=FALSE, warning=FALSE}
+hoursumm2<-head(hour[10:17],2)
+
+
+hoursumm2%>%
+  kbl() %>%
+  kable_paper("hover", full_width = F) %>%
+  row_spec(0, background = "#ecab72", color = "black" )
+```
+
+
+## Variabili del dataset giornaliero e orario.
+
+Analizziamo ora le variabili che ci vengono forniti per entrambi i dataset.  
+
+```{r echo=FALSE}
+c<-colnames(hour, do.NULL = TRUE, prefix = "col")
+c
+```
+
+* Instant: Assume valori da 1 a 731 (giornaliero) e da 1 a 17379 (orario), il numero totale delle osservazioni.  
+* dteday: Data in cui un valore è stato registrato.  
+* season: Assume valori da 1 a 4:
+  + 1: Inverno;
+  + 2: Primavera;
+  + 3: Estate;
+  + 4: Autunno.
+* yr: Valore booleano dove:
+  + 0: anno 2011;
+  + 1: anno 2012.
+* mnth: Simboleggia il mese in cui un valore è stato registrato, comprende valori da 1 a 12.
+* hr: Ora del giorno corrente in cui è stato registrato un dato. Ovviamente quest'informazione è presente solo nel dataset orario.  
+* holiday: Valore booleano in cui:
+  + 0: giorno normale;
+  + 1: giorno festivo.
+* weekday: Assume valori da 0 a 6:
+  + 0: Domenica;
+  + 1: Lunedì;
+  + 2: Martedì;
+  + 3: Mercoledì;
+  + 4: Giovedì;
+  + 5: Venerdì;
+  + 6: Sabato.
+* workingday: Assume valori booleani in cui: (1 = Martedì, Mercoledì, Giovedì, Venerdì; 0= Sabato, Domenica, Lunedì).   
+* weathersit: Descrive la situazione metereologica dove:
+  + 1: Soleggiato, Poche nuvole, Parzialmente nuvoloso;
+  + 2: Nebbia + Nuvoloso, Nebbia + Parzialmente nuvoloso, Nebbia + alcune Nuvole, Nebbia;
+  + 3: Leggera neve, Leggera pioggia + Tempesta + Nuvole sparse, Pioggia leggera + Nuvole sparse; 
+  + 4: Forte pioggia + Grandine + Tempesta + Nebbia, Neve + Nebbia.
+* temp: Temperatura normalizzata in Celsius.  
+* atemp: Temperatura percepita normalizzata in Celsius. 
+* hum: Umidità normalizzata. 
+* windspeed: Velocità del vento normalizzata. 
+* casual: Conteggio del numero di utenti che non sono registrati al servizio di sharing ma ne hanno usufruito. 
+* registered: Conteggio del numero di utenti registrati al servizio di sharing che ne hanno fatto uso.
+* cnt: Conteggio degli utenti totali che hanno usato il servizio di sharing.  
+
+
+
+## Il bikesharing nel tempo. 
+
+La prima analisi che propongo è quella riguardante il numero totale di noleggi che si è verificato giorno per giorno. 
+
+```{r echo=FALSE}
+
+library(ggplot2)
+
+
+ggplot(data=hour, aes(x=dteday, y=cnt, fill=temp) ) +
+  geom_bar(stat="identity")+
+  labs(x="Data del giorno", y="Numero di noleggi")
+
+```
+
+In questo grafico possiamo trarre due ipotesi. In una prima occhiata possiamo infatti notare come l'utilizzo del bike sharing, nell'arco dei 
+due anni presi in considerazione, abbia avuto una crescita di utilizzatori. In secondo luogo possiamo osservare come il numero di noleggi vari nel corso 
+dell'anno. Nei mesi primaverili ed estivi, infatti, il numero di utilizzo comparato ai mesi invernali e autunnali è di gran lunga maggiore. Possiamo
+dire che la stagione in cui ci troviamo possa influenzare questo servizio?
+
+
+## Stagioni e noleggi.
+
+Andiamo a confrontare il numero di utenti totale giornaliero con la situazione stagionale.
+Di seguito troviamo un boxplot in cui, in ascissa, troviamo una ad una, le quattro stagioni, 
+mentre in ordinata troviamo il conteggio dei noleggi.
+Grazie a questa rappresentazione possiamo osservare come la stagione 1, ovvero quella invernale, sia quella che 
+presenta il numero minore di noleggi effettuati, come avevamo ipotizzato in precedenza. La domanda che mi sono posto in seguito a questo risultato è la seguente: 
+"Possiamo in qualche modo verificare che questo risultato è legato alle temperature?".
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ 
+ggplot(data=day) +
+  geom_boxplot(mapping = aes(x = season, y = cnt, group = season), fill="red", alpha=0.2) +
+  labs(x="Stagione", y="Numero di noleggi")
+
+
+```
+
+## Confronto fra la temperatura e il numero di noleggi.
+
+Dopo una rapida analisi, possiamo affermare che la risposta alla domanda precedente è positiva.
+Qui sotto, infatti, riporto quattro grafici che ci permettono di verificare la presenza di una relazione tra 
+la temperatura e il numero di noleggi.
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library("dplyr")
+library("gridExtra")
+
+#confronto tra temperatura reale/percepita e numero di noleggi
+
+g1<-ggplot(data = day, mapping = aes(x = temp, y = cnt)) +
+   geom_point() + 
+   geom_smooth(formula = y ~ x, method = "loess") + labs(x="Temperatura Reale", y="Numero di noleggi")
+
+g2<-ggplot(day, aes(x=temp, y=cnt))+
+   geom_hex() + labs(x="Temperatura reale", y="Numero di noleggi")
+
+
+g3<-ggplot(data = day, mapping = aes(x = atemp, y = cnt)) +
+    geom_point() + 
+    geom_smooth(formula = y ~ x, method = "loess") +labs(x="Temperatura percepita", y="Numero di noleggi")
+
+
+g4<-ggplot(day, aes(x=atemp, y=cnt))+
+  geom_hex() + labs(x="Temperatura percepita", y="Numero di noleggi")
+
+
+grid.arrange(g1, g2, g3, g4, ncol=2, nrow=2)
+
+```
+
+
+I grafici riportati sono stati calcolati sia con la temperatura reale (in alto) sia con quella percepita (in basso).
+In entrambi i casi possiamo trarre la stessa conclusione, ovvero che in presenza di temperature basse e alte, il numero di noleggi è significativamente più basso.
+Ho voluto distinguere le due tipologie di temperatura in quanto è possibile notare una piccola differenza. Infatti, se osserviamo l'angolazione con cui 
+la parte finale dell'andamento scende, possiamo constatare come per temperature percepite alte, il numero di noleggi cali molto più rapidamente rispetto alla temperatura effettiva.
+La domanda che mi sono posto dopo questo risultato è la seguente: "Oltre alla temperatura ci sono altri fattori metereologici che potrebbero influenzare la scelta di usufruire di un servizio di bike sharing?".
+
+
+## Velocità del vento e numero di noleggi.
+
+```{r echo=FALSE}
+library(ggplot2)
+
+g1<-ggplot(data = day, mapping = aes(x = windspeed, y = cnt)) +
+   geom_point() + 
+   geom_smooth(formula = y ~ x, method = "loess") + labs(x="Velocità del vento", y="Numero di noleggi") 
+
+
+g1
+
+
+```
+
+
+
+Nel grafico che troviamo qui sopra, troviamo in ascissa la velocità del vento misurata  nei giorni in cui sono stati 
+registrati i dati a nostra disposizione. Ho trovato questo grafico molto interessante in quanto conferma che anche il vento 
+risulta essere un fattore determinante per la scelta di utilizzo di questo servizio in particolare. 
+In questo grafico possiamo notare come la maggioranza del numero di noleggi venga effettuata in presenza
+di vento leggero, infatti, dai 5km/h ai 15km/h troviamo la gran parte dei noleggi. Tuttavia, man mano che il vento cresce,
+notiamo come il numero di noleggi va via via scendendo. 
+
+
+## Umidità e numero di noleggi.
+
+```{r echo=FALSE}
+library(ggplot2)
+
+g2<-ggplot(data = day, mapping = aes(x = hum, y = cnt)) +
+   geom_point() + 
+   geom_smooth(formula = y ~ x, method = "loess") + labs(x="Umidità", y="Numero di noleggi") +
+  geom_vline( xintercept = mean(day$hum), col="orange")
+
+g2
+
+```
+
+
+Un altro fattore che potrebbe contribuire all'utilizzo delle biciclette potrebbe essere la presenza di una percentuale 
+di umidità elevata. Facendo un rapido calcolo troviamo che l'umidità media misurata a Washington, nel 2011 e 2012, è stata di 62.78941.
+Ho riportato questo valore nel grafico qui sopra poiché possiamo osservare come la posizione della retta divida in due l'andamento ottenuto dal grafico. 
+Ponendo la nostra attenzione sulla retta azzurra, infatti, osserviamo come il massimo dell'andamento dei noleggi sia quasi in corrispondenza dell'intersezione 
+con la retta della media calcolata in precedenza.
+Possiamo quindi affermare che anche l'umidità gioca un ruolo importante nella scelta del mezzo per muoversi per la città.
+
+## Situazione metereologica e noleggi. 
+
+Qui sotto troviamo due grafici che mettono in relazione il numero di noleggi effettuati e la situazione metereologica che, come detto
+nell'introduzione, viene classificata in quattro categorie principali. In entrambi i casi, possiamo raggiungere la stessa conlusione.
+In presenza di un meteo favorevole all'utilizzo della bicicletta come mezzo di trasporto, ovvero la categoria 1, il numero di utilizzi è molto 
+più elevato rispetto alle classi 2, 3, 4. Quindi man mano che il meteo peggiora, il numero di noleggi diminuisce.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+g6<-ggplot(data=day) + 
+  geom_bar(mapping = aes( x = weathersit, y=cnt ), fill="lightblue", stat="identity")+
+  labs(x="Situazione meteo giornaliera", y="Numero di noleggi")
+
+g7<-ggplot(data=hour) + 
+  geom_bar(mapping = aes( x = hour$weathersit, y = cnt ), fill="orange", stat="identity")+
+  labs(x="Situazione meteo oraria", y="Numero di noleggi")
+
+grid.arrange(g6, g7, ncol=2, nrow=1)
+
+```
+
+
+## Corrplot.
+
+Di seguito riporto un corrplot per avere un riscontro matematico sulle conclusioni tratte in precedenza.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(gridExtra)
+
+n<- day %>% 
+      select(cnt, temp, atemp, weathersit, season, windspeed, hum)
+
+M <- cor(n)
+
+g<-corrplot(M, method = "number")
+
+
+
+
+
+```
+
+## Regressione lineare semplice. 
+
+Dal corrplot possiamo notare come il valore maggiore (0.63) sia rappresentato 
+dalla relazione tra la temperatura e il numero di noleggi. 
+Dopo aver calcolato la regressione lineare del numero di noleggi con i fattori ambientali riportati in precedenza, riporto 
+il calcolo del più significativo di questi, ovvero quello della temperatura.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(modelr)
+library(gridExtra)
+
+g <- day%>%
+   select(atemp, cnt)
+
+e1 <- ggplot(g, aes(x = atemp, y = cnt)) + geom_point() +
+        labs(x="Temperatura percepita", y="N.ro di noleggi") + 
+        ggtitle(label = "Regressione lineare semplice")+
+         theme(
+                plot.title = element_text(hjust = 0.5, color = "red", size = 15, face = "bold"),
+                plot.subtitle = element_text(hjust = 0.5)
+                )
+
+mod1 <- lm(day$cnt ~ day$atemp)
+
+
+e2<- ggplot(g, aes(x = atemp, y=cnt)) + 
+       geom_point()+
+       geom_abline(intercept = mod1$coefficients[1],
+              slope = mod1$coefficients[2],
+              color="orange") + 
+        labs(x="Temperatura percepita", y="N.ro di noleggi")
+
+r <- cor(g$atemp, g$cnt)
+
+
+summary(mod1)
+mod1$coefficients
+r
+summary(mod1)$r.squared
+
+grid.arrange(e1, e2, ncol=1, nrow=2)
+
+
+```
+
+
+
+## Regressione lineare multipla.
+
+Ho calcolato poi la regressione lineare multipla tra il numero di noleggi, la temperatura, l'umidità e la velocità del vento 
+ottenendo questi risultati.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(modelr)
+
+lmtot<- lm((day$cnt)~day$temp+day$hum+day$windspeed)
+lmtot
+
+
+lmtot$coefficients 
+
+
+summary(lmtot)$r.squared
+
+
+
+summary(lmtot)
+
+#plot(lmtot,col = "red", main = "Regressione lineare tra numero di noleggi, temperatura, velocità del vento e umidità.")
+
+```
+
+
+## Relazione tra orario e numero di noleggi.
+
+Oltre alle condizioni metereologiche, vorrei porre ora la mia attenzione nella verifica della presenza di una eventuale 
+relazione tra l'orario giornaliero con il numero di noleggi effettuati.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+
+
+c1 <- ggplot(data=hour) +
+       geom_boxplot(mapping = aes(x = hr, y = cnt, group = hr), color="blue", fill="lightblue", alpha=0.2) +
+       labs(x="Ora del giorno", y="N.ro di noleggi") + 
+       ggtitle(label = "Numero di noleggi secondo l'orario")+
+         theme(
+                plot.title = element_text(hjust = 0.5, color = "red", size = 15, face = "bold"),
+                plot.subtitle = element_text(hjust = 0.5)
+                ) 
+
+c1
+
+```
+
+Da questo primo grafico possiamo notare come il numero di noleggi abbia un valore maggiore 
+in corrispondenza delle ore mattutine che vanno dalle 7 alle 9 e delle ore pomeridiane 
+che vanno dalle 17 alle 18. Questi orari ricordano molto quelli di inizio e fine lavoro. 
+Se mi trovassi in un giorno lavorativo o nel weekend riscontrerei una differenza?
+
+
+## Analisi del numero di noleggi in base al tipo di giorno.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+onlyworkingdays <- hour%>%
+  filter( workingday == "1") %>%
+  select(cnt, hr)
+
+onlyweekend <- hour%>%
+  filter( workingday == "0") %>%
+  select(cnt, hr)
+
+
+
+c2 <- ggplot(data = onlyworkingdays) +
+        geom_boxplot(mapping = aes(x = hr, y = cnt, group = hr), color="blue", fill="lightblue", alpha=0.2) +
+        labs(x="Ora del giorno dei giorni lavorativi", y="N.ro di noleggi") + 
+        ggtitle(label = "Numero totale di noleggi nei giorni lavorativi e nei weekend")+
+         theme(
+                plot.title = element_text(hjust = 0.5, color = "red", size = 15, face = "bold"),
+                plot.subtitle = element_text(hjust = 0.5)
+                )
+
+c3 <- ggplot(data = onlyweekend) +
+        geom_boxplot(mapping = aes(x = hr, y = cnt, group = hr), color="blue", fill="lightblue", alpha=0.2) +
+        labs(x="Ora del giorno dei weekend", y="N.ro di noleggi")
+
+   
+grid.arrange(c2, c3, ncol=1, nrow=2)
+
+```
+
+
+Come si può notare c'è una grande differenza nell'andamento dei noleggi tra i due grafici. Se, infatti, mi 
+trovo in un giorno lavorativo, il trend sottolineato in precedenza rimane lo stesso. Ma se confrontiamo i noleggi dei giorni di weekend con quelli dei giorni lavorativi, possiamo notare come, nei giorni di weekend, l'andamento di noleggi sia costante nel corso di tutte le ore di tarda mattinata fino al pomeriggio inoltrato. Una spiegazione a questa differenza potrebbe essere dovuta al fatto che, durante la settimana, il servizio di bike sharing viene usato per recarsi al posto di lavoro.
+Quindi, è molto probabile che un pendolare, siccome deve recarsi sul posto di lavoro ogni giorno, sia un utente registrato a questo servizio.
+Verifichiamo.
+
+
+## Analisi del numero di noleggi in base al tipo di utente nei giorni lavorativi. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+onlyworkingdayscasual <- hour%>%
+  filter( workingday == "1") %>%
+  select(casual, hr)
+
+onlyworkingdaysreg <- hour%>%
+  filter( workingday == "1") %>%
+  select(registered, hr)
+
+
+
+
+
+c4 <- ggplot(data = onlyworkingdaysreg) +
+        geom_boxplot(mapping = aes(x = hr, y = registered, group = hr), color="blue", fill="lightblue", alpha=0.2) +
+        labs(x="Ora del giorno dei giorni lavorativi", y="N.ro di noleggi registrati") + 
+        ggtitle(label = "Numero di noleggi nei giorni lavorativi per tipo di utente")+
+         theme(
+                plot.title = element_text(hjust = 0.5, color = "red", size = 15, face = "bold"),
+                plot.subtitle = element_text(hjust = 0.5)
+                )
+
+c5 <- ggplot(data = onlyworkingdayscasual) +
+        geom_boxplot(mapping = aes(x = hr, y = casual, group = hr), color="blue", fill="lightblue", alpha=0.2) +
+        labs(x="Ora del giorno dei giorni lavorativi", y="N.ro di noleggi non registrati")
+
+grid.arrange(c4, c5, ncol=1, nrow=2)
+
+
+```
+
+Come possiamo notare durante i giorni lavorativi, se compariamo il numero di utenti registrati, il numero 
+di noleggi si concentra negli orari riportati in precedenza.Questo numero è maggiore rispetto all'utilizzo eseguito
+da parte di utenti non registrati che, invece, non presentano una particolare affluenza in un determinato orario. 
+Cosa succede invece nel weekend, quando non c'è la necessità di recarsi presso il posto di lavoro?
+
+
+## Analisi del numero di noleggi in base al tipo di utente nel weekend. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+
+onlyweekendcasual <- hour%>%
+  filter( workingday == "0") %>%
+  select(casual, hr)
+
+
+onlyweekendreg <- hour%>%
+  filter( workingday == "0") %>%
+  select(registered, hr)
+
+
+
+c6 <- ggplot(data = onlyweekendreg) +
+      geom_boxplot(mapping = aes(x = hr, y = registered, group = hr), color="blue", fill="lightblue", alpha=0.2) +
+      labs(x="Ora del giorno dei weekend", y="N.ro di noleggi registrati")+ 
+        ggtitle(label = "Numero di noleggi nei weekend per tipo di utente")+
+         theme(
+                plot.title = element_text(hjust = 0.5, color = "red", size = 15, face = "bold"),
+                plot.subtitle = element_text(hjust = 0.5)
+                )
+
+c7 <- ggplot(data = onlyweekendcasual) +
+        geom_boxplot(mapping = aes(x = hr, y = casual, group = hr), color="blue", fill="lightblue", alpha=0.2) +
+        labs(x="Ora del giorno dei weekend", y="N.ro di noleggi non registrati")  
+       
+
+grid.arrange(c6, c7, ncol=1, nrow=2)
+
+
+```
+
+
+In questo caso possiamo notare come i due grafici quasi coincidano sia per orario e sia per il numero di noleggi. 
+Non riscontriamo infatti la presenza di un picco nelle fasce di inizio e fine lavoro e il numero di utenti, che questi siano 
+registrati o meno, è molto simile. Possiamo quindi concludere che questo servizio viene sfruttato per lo più in settimana da
+utenti registrati che usa il bike sharing come mezzo di trasporto per recarsi sul posto di lavoro. Nel fine settimana, tuttavia, 
+questo servizio viene usato da utenti registrati e non, per spostarsi attraverso la città.
+
+
+
+## Conclusioni 
+
+Nel corso di quest'analisi spero di essere riuscito a sottolineare e dimostrare quanto un servizio come il 
+bike sharing venga molto influenzato dalle condizioni ambientali e atmosferiche. Come ho riportato nell'introduzione, 
+ho personalmente trovato questo dataset molto interessante in quanto permette di capire il contesto di utilizzo di questo servizio da parte delle persone che ne fanno uso.
+
+<br>
+ ![Alt text](/Users/pierr/Documents/Fondamenti di scienza dei dati/PROGETTO/foto/foto3.jpg){width=400px, position=center}  
+
+<!-- 
+```{r}
+library(dplyr)
+library(ggplot2)
+library(modelr)
+
+g<-day%>%
+   select(hum, cnt)
+
+
+ggplot(g, aes(x = hum, y=cnt)) + geom_point()
+
+mod1 = lm(g$cnt ~ g$hum, data = g)
+summary(mod1)
+
+mod1$coefficients
+
+ggplot(g, aes(x = hum, y=cnt)) + 
+  geom_point()+
+  geom_abline(intercept = mod1$coefficients[1],
+              slope = mod1$coefficients[2],
+              color="blue")
+
+(r = cor(g$hum, g$cnt))
+summary(mod1)$r.squared
+```
+
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(modelr)
+
+g<-day%>%
+   select(windspeed, cnt)
+
+
+ggplot(g, aes(x = windspeed, y=cnt)) + geom_point()
+
+mod1 = lm(g$cnt ~ g$windspeed, data = g)
+summary(mod1)
+
+mod1$coefficients
+
+ggplot(g, aes(x = windspeed, y=cnt)) + 
+  geom_point()+
+  geom_abline(intercept = mod1$coefficients[1],
+              slope = mod1$coefficients[2],
+              color="blue")
+
+(r = cor(g$windspeed, g$cnt))
+summary(mod1)$r.squared
+```
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(modelr)
+
+g<-day%>%
+   select(temp, hum)
+
+
+ggplot(g, aes(x = temp, y=hum)) + geom_point()
+
+mod1 = lm(g$temp ~ g$hum, data = g)
+summary(mod1)
+
+mod1$coefficients
+
+ggplot(g, aes(x = temp, y=hum)) + 
+  geom_point()+
+  geom_abline(intercept = mod1$coefficients[1],
+              slope = mod1$coefficients[2],
+              color="blue")
+
+(r = cor(g$temp, g$hum))
+summary(mod1)$r.squared
+```
+
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(modelr)
+
+g<-hour%>%
+   select(hr, cnt)
+
+
+ggplot(g, aes(x = hr, y=cnt)) + geom_point()
+
+mod1 = lm(g$cnt ~ g$hr, data = g)
+summary(mod1)
+
+mod1$coefficients
+
+ggplot(g, aes(x = hr, y=cnt)) + 
+  geom_point()+
+  geom_abline(intercept = mod1$coefficients[1],
+              slope = mod1$coefficients[2],
+              color="blue")
+
+(r = cor(g$hr, g$cnt))
+summary(mod1)$r.squared
+```
+
+
+
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
